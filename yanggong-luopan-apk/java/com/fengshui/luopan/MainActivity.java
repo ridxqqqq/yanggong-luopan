@@ -198,6 +198,11 @@ public class MainActivity extends Activity implements SensorEventListener {
                 LuopanView.MOUNTAINS[xiang], adiff, zheng)));
         box.addView(bullet("≤3° 为正向；3–6° 为兼向（如子兼癸）；6–7.5° 近界缝犯空亡，宜重测。"));
 
+        box.addView(section("圈层详解（由外向内）"));
+        for (String[] l : ringGuide(zuo, xiang)) {
+            box.addView(ringBullet(l[0], l[1]));
+        }
+
         box.addView(section("二十四山坐向理气对照"));
         for (int i = 0; i < 24; i++) {
             String prefix = (i == zuo) ? "▶ " : "";
@@ -220,6 +225,70 @@ public class MainActivity extends Activity implements SensorEventListener {
                 .setView(scroll)
                 .setPositiveButton("关闭", null)
                 .show();
+    }
+
+    /** 圈层详解：逐层说明，含当前坐向在每层的对应内容 */
+    private java.util.List<String[]> ringGuide(int zuo, int xiang) {
+        java.util.List<String[]> out = new java.util.ArrayList<>();
+        int zhi = Math.round(zuo * 15f / 30f) % 12;
+        String zhiName = LuopanView.ZHI12[zhi];
+        String mountain = LuopanView.MOUNTAINS[zuo];
+        String starName = new String[]{"一白坎", "八白艮", "三碧震", "四绿巽",
+                "九紫离", "二黑坤", "七赤兑", "六白乾"}[zuo % 8];
+        int longIdx = view.getLongIndex();
+        int ki = LuopanView.jiaziIndexForDragon(longIdx);
+        String longName = LuopanView.JIAZI60[ki];
+        String longNayin = LuopanView.NAYIN[ki / 2];
+
+        out.add(new String[]{"度数刻度环（外圈）",
+                "现代 360° 角度标尺，正北 0°、正东 90°、正南 180°、正西 270°，每 30° 标数。用于精确记录坐向度数。"});
+        out.add(new String[]{"六十四卦层（伏羲先天圆图）",
+                "每卦 5.625°，复卦起子位顺时针，经东方至乾居南，姤卦续起，坤终北位。用于玄空大卦择日与卦理断事。"});
+        out.add(new String[]{"九星数字环（洛书配宫）",
+                "洛书数配后天八卦：1坎北、8艮东北、3震东、4巽东南、9离南、2坤西南、7兑西、6乾西北。当前坐山属【" + starName + "】宫，玄空飞星以此宫排盘。"});
+        out.add(new String[]{"二十八宿层",
+                "角亢氐房…井鬼柳星张翼轸共 28 宿，每宿约 12.86°，角宿起辰巽（135°）逆时针排布。天星派用于消砂纳水与择日。"});
+        out.add(new String[]{"天盘缝针（二十四山）",
+                "整体顺时针错半位 7.5°（子山对地盘子癸之界），双山五行属【纳水】——看水流来去定吉凶，以缝针为准。"});
+        out.add(new String[]{"人盘中针（二十四山）",
+                "整体逆时针错半位 7.5°（子山对地盘壬子之界），双山五行属【消砂】——看山峰位置定生克，以中针为准。"});
+        out.add(new String[]{"地盘正针（二十四山）",
+                "红色大字，每山 15°，子正北起。这是【格龙定向】的基准层：叠针后十字竖线所指即坐向，底栏读数即来源于此层。当前坐" + mountain + "山。"});
+        out.add(new String[]{"七十二龙（地盘分金）",
+                "每山三龙、各 5°，正中一线为【龟甲空亡】不用，余六十甲子跳空顺排，配纳音五行定坐穴。当前向线压【" + longName + "】龙（纳音" + longNayin + "）。"});
+        out.add(new String[]{"一百二十分金",
+                "每山五分金（甲乙丙丁戊各 3°），传统只用居中的【丙、丁】分金（避甲乙孤虚、戊空亡）。盘面以均匀细刻度呈现，具体落线由本弹窗实时判定。"});
+        out.add(new String[]{"地支环（十二支）",
+                "十二地支每支 30°，子居正北顺时针至亥。地支是二十四山的骨架，坐" + mountain + "山属地支【" + zhiName + "】系，三合六合关系由支系推。"});
+        out.add(new String[]{"天干环（十干）",
+                "十天干每干 36°，甲起东北偏东（75°）。戊己不入盘；四正与四隅的天干围绕地支，构成干支组合的方位意义。"});
+        out.add(new String[]{"八卦层（三线爻符+卦名）",
+                "后天八卦各镇一方（坎北、艮东北、震东、巽东南、离南、坤西南、兑西、乾西北），爻画阴阳即卦象。当前坐山属【" + starName + "】宫卦。"});
+        out.add(new String[]{"天池（中心）",
+                "白底红色子午基准线 + 两颗红点，磁针红头指子（北）、黑尾指午（南）。叠针即让红线与磁针重合——这是全盘定位的起点。"});
+        return out;
+    }
+
+    /** 圈层详解条目：名称金色加粗 + 说明正文 */
+    private LinearLayout ringBullet(String name, String desc) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.VERTICAL);
+        row.setPadding(dp(6), dp(4), 0, dp(4));
+
+        TextView tvName = new TextView(this);
+        tvName.setText("◆ " + name);
+        tvName.setTextColor(0xFFD9B45C);
+        tvName.setTextSize(13.5f);
+        tvName.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        row.addView(tvName);
+
+        TextView tvDesc = new TextView(this);
+        tvDesc.setText(desc);
+        tvDesc.setTextColor(0xFFDDDDDD);
+        tvDesc.setTextSize(13f);
+        tvDesc.setLineSpacing(dp(2), 1f);
+        row.addView(tvDesc);
+        return row;
     }
 
     private int liQiColor(String jixiong) {
